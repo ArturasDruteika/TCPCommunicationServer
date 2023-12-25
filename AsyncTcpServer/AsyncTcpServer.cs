@@ -106,6 +106,7 @@ namespace CustomServer
             }
 
             client.Close();
+            _totalCLientsConnected.Remove(client);
         }
 
         private async void AcceptClientsAsync()
