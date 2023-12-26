@@ -1,4 +1,6 @@
-﻿using CustomServer;
+﻿using AsyncTcpServer.ImageHandlers;
+using AsyncTcpServer.MessageHandlers;
+using CustomServer;
 
 
 class Program
@@ -9,7 +11,10 @@ class Program
 
     static void Main(string[] args)
     {
-        AsyncTcpServer server = new AsyncTcpServer(IP, PORT);
+        MessageHandler msgHandler = new MessageHandler();
+        ImageHandler imgHandler = new ImageHandler();
+
+        AsyncTCPServer server = new AsyncTCPServer(IP, PORT, msgHandler, imgHandler);
         server.Start();
 
         Console.WriteLine("Press Enter to stop the server...");

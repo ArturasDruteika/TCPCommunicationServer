@@ -1,4 +1,4 @@
-﻿namespace CustomServer
+﻿namespace AsyncTcpServer.ClientHandlers
 {
     public static class CommandTypes
     {
