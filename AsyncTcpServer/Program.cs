@@ -9,7 +9,7 @@ class Program
 
     static void Main(string[] args)
     {
-        AsyncTcpServer server = new AsyncTcpServer(IP, PORT);
+        AsyncTCPServer server = new AsyncTCPServer(IP, PORT);
         server.Start();
 
         Console.WriteLine("Press Enter to stop the server...");
