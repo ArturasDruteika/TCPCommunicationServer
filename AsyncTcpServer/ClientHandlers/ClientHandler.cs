@@ -40,13 +40,18 @@ namespace AsyncTcpServer.ClientHandlers
                 await _imageHandler.HandleImageAsync(stream, _imgDirPath, ctsToken);
             }
 
-            _client.Close();
+            CloseClient();
         }
 
         public void LogClientConnectionTime()
         {
             DateTime now = DateTime.Now;
             Console.WriteLine("Client's time of connection': " + now);
+        }
+
+        private void CloseClient()
+        {
+            _client.Close();
         }
     }
 
