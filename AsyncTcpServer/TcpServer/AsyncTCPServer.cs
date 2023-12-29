@@ -50,14 +50,14 @@ namespace CustomServer
                 {
                     if (_listener.Pending())
                     {
-                        TcpClient client = await _listener.AcceptTcpClientAsync();
+                        TcpClient client = await _listener.AcceptTcpClientAsync(_cts.Token);
                         ClientHandler clientHandler = new ClientHandler(client, _messageHandler, _imageHandler, _imgDirPath);
                         Console.WriteLine("Client connected.");
                         lock (_clientsLock)
                         {
                             PrintClientInfo(client);
                         }
-                        _ = Task.Run(() => clientHandler.HandleClientAsync());
+                        _ = Task.Run(() => clientHandler.HandleClientAsync(_cts.Token));
                     }
                     else
                     {

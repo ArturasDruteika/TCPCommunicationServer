@@ -21,8 +21,9 @@ namespace AsyncTcpServer.ClientHandlers
             _imgDirPath = imgDirPath;
         }
 
-        public async Task HandleClientAsync()
+        public async Task HandleClientAsync(CancellationToken ctsToken)
         {
+            LogClientConnectionTime();
             NetworkStream stream = _client.GetStream();
             byte[] buffer = new byte[3]; // Adjusted to 3 bytes for the "IMG" header
 
@@ -32,14 +33,20 @@ namespace AsyncTcpServer.ClientHandlers
 
             if (header == CommandTypes.MSG)
             {
-                await _messageHandler.HandleMessageAsync(stream);
+                await _messageHandler.HandleMessageAsync(stream, ctsToken);
             }
             else if (header == CommandTypes.IMG)
             {
-                await _imageHandler.HandleImageAsync(stream, _imgDirPath);
+                await _imageHandler.HandleImageAsync(stream, _imgDirPath, ctsToken);
             }
 
             _client.Close();
+        }
+
+        public void LogClientConnectionTime()
+        {
+            DateTime now = DateTime.Now;
+            Console.WriteLine("Client's time of connection': " + now);
         }
     }
 

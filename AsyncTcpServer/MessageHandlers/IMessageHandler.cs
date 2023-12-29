@@ -4,6 +4,6 @@ namespace AsyncTcpServer.MessageHandlers
 {
     public interface IMessageHandler
     {
-        Task HandleMessageAsync(NetworkStream stream);
+        Task HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken);
     }
 }
