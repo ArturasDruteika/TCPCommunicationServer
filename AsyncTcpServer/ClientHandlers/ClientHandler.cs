@@ -31,16 +31,25 @@ namespace AsyncTcpServer.ClientHandlers
             await stream.ReadAsync(buffer, 0, buffer.Length);
             string header = Encoding.ASCII.GetString(buffer);
 
+            int res = 0;
+
             if (header == CommandTypes.MSG)
             {
-                await _messageHandler.HandleMessageAsync(stream, ctsToken);
+                res = await _messageHandler.HandleMessageAsync(stream, ctsToken);
             }
             else if (header == CommandTypes.IMG)
             {
                 await _imageHandler.HandleImageAsync(stream, _imgDirPath, ctsToken);
             }
+            else
+            {
+                Console.WriteLine("Client didn't use the protocol...");
+            }
 
-            CloseClient();
+            if (res == -1) 
+            {
+                CloseClient();
+            }
         }
 
         public void LogClientConnectionTime()
