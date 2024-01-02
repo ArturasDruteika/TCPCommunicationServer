@@ -32,7 +32,7 @@ namespace AsyncTcpServer.ClientHandlers
             await stream.ReadAsync(buffer, 0, buffer.Length);
             string header = Encoding.ASCII.GetString(buffer);
 
-            int res = 0;
+            ClientStatus res = 0;
 
             if (header == CommandTypes.MSG)
             {
@@ -47,10 +47,7 @@ namespace AsyncTcpServer.ClientHandlers
                 Console.WriteLine("Client didn't use the protocol...");
             }
 
-            if (res == -1) 
-            {
-                CloseClient();
-            }
+            CloseClientIfDisconnected(res);
         }
 
         public void LogClientConnectionTime()
@@ -62,6 +59,15 @@ namespace AsyncTcpServer.ClientHandlers
         private void CloseClient()
         {
             _client.Close();
+            Console.WriteLine("Client has disconnected...");
+        }
+
+        private void CloseClientIfDisconnected(ClientStatus status)
+        {
+            if (status == ClientStatus.DISCONNECTED)
+            {
+                CloseClient();
+            }
         }
     }
 

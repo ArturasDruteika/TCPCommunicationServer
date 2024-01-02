@@ -7,7 +7,7 @@ namespace AsyncTcpServer.MessageHandlers
 {
     public class MessageHandler : IMessageHandler
     {
-        public async Task<int> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken)
+        public async Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken)
         {
             try
             {
@@ -16,22 +16,16 @@ namespace AsyncTcpServer.MessageHandlers
 
                 while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, ctsToken)) != 0)
                 {
-                    if (bytesRead == 0)
-                    {
-                        // Client has closed the connection
-                        return -1;
-                    }
-
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
                     Console.WriteLine("Received: " + receivedData);
                 }
 
-                return 0;
+                return ClientStatus.CONNECTED;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Exception: " + ex.Message);
-                return -1;
+                return ClientStatus.DISCONNECTED;
             }
         }
 
