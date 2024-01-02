@@ -10,6 +10,7 @@ namespace AsyncTcpServer.ClientHandlers
     public class ClientHandler
     {
         private readonly TcpClient _client;
+        private string _username = string.Empty;
         private readonly IMessageHandler _messageHandler;
         private readonly IImageHandler _imageHandler;
         private string _imgDirPath;
@@ -29,8 +30,8 @@ namespace AsyncTcpServer.ClientHandlers
 
             // Assuming you have a method to read the first message
             string initialMessage = await ReadInitialMessage(_client);
-            string username = ParseUsername(initialMessage);
-            PrintClientInfo(username);
+            _username = ParseUsername(initialMessage);
+            PrintClientInfo();
 
             byte[] buffer = new byte[3]; // Adjusted to 3 bytes for the "IMG" header
 
@@ -42,7 +43,7 @@ namespace AsyncTcpServer.ClientHandlers
 
             if (header == CommandTypes.MSG)
             {
-                res = await _messageHandler.HandleMessageAsync(stream, ctsToken);
+                res = await _messageHandler.HandleMessageAsync(stream, ctsToken, _username);
             }
             else if (header == CommandTypes.IMG)
             {
@@ -63,10 +64,9 @@ namespace AsyncTcpServer.ClientHandlers
                 return string.Empty;
             }
 
-            const string usernamePrefix = CommandTypes.MSG + "USERNAME:";
-            if (initialMessage.StartsWith(usernamePrefix))
+            if (initialMessage.StartsWith(CommandTypes.MSG))
             {
-                return initialMessage.Substring(usernamePrefix.Length);
+                return initialMessage.Substring(CommandTypes.MSG.Length);
             }
 
             return string.Empty; // Return empty if the prefix is not found
@@ -94,7 +94,7 @@ namespace AsyncTcpServer.ClientHandlers
         private void CloseClient()
         {
             _client.Close();
-            Console.WriteLine("Client has disconnected...");
+            Console.WriteLine($"{_username} has disconnected...");
         }
 
         private void CloseClientIfDisconnected(ClientStatus status)
@@ -105,14 +105,14 @@ namespace AsyncTcpServer.ClientHandlers
             }
         }
 
-        private void PrintClientInfo(string username)
+        private void PrintClientInfo()
         {
             if (_client.Connected)
             {
                 Console.WriteLine("Client:");
                 Console.WriteLine("  Local Endpoint: " + _client.Client.LocalEndPoint);
                 Console.WriteLine("  Remote Endpoint: " + _client.Client.RemoteEndPoint);
-                Console.WriteLine("  Username: " + username);
+                Console.WriteLine("  Username: " + _username);
             }
             else
             {
