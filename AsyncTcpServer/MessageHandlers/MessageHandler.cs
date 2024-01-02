@@ -7,7 +7,7 @@ namespace AsyncTcpServer.MessageHandlers
 {
     public class MessageHandler : IMessageHandler
     {
-        public async Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken)
+        public async Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken, string username)
         {
             try
             {
@@ -17,7 +17,12 @@ namespace AsyncTcpServer.MessageHandlers
                 while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, ctsToken)) != 0)
                 {
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
-                    Console.WriteLine("Received: " + receivedData);
+                    Console.WriteLine($"{username}: " + receivedData);
+                }
+
+                if (bytesRead == 0) 
+                {
+                    return ClientStatus.DISCONNECTED;
                 }
 
                 return ClientStatus.CONNECTED;
