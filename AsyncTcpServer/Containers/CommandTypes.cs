@@ -1,4 +1,4 @@
-﻿namespace AsyncTcpServer.ClientHandlers
+﻿namespace AsyncTcpServer.Containers
 {
     public static class CommandTypes
     {
