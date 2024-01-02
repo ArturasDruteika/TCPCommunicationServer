@@ -14,7 +14,6 @@ namespace CustomServer
         private bool _isRunning = false;
         private string _imgDirPath = "";
         private CancellationTokenSource _cts = new CancellationTokenSource();
-        private object _clientsLock = new object();
         private readonly IMessageHandler _messageHandler;
         private readonly IImageHandler _imageHandler;
 
@@ -53,10 +52,6 @@ namespace CustomServer
                         TcpClient client = await _listener.AcceptTcpClientAsync(_cts.Token);
                         ClientHandler clientHandler = new ClientHandler(client, _messageHandler, _imageHandler, _imgDirPath);
                         Console.WriteLine("Client connected.");
-                        lock (_clientsLock)
-                        {
-                            PrintClientInfo(client);
-                        }
                         _ = Task.Run(() => clientHandler.HandleClientAsync(_cts.Token));
                     }
                     else
@@ -69,23 +64,6 @@ namespace CustomServer
             {
                 // Listener has been stopped
                 Console.WriteLine("Listener has been stopped.");
-            }
-        }
-
-        private void PrintClientInfo(TcpClient client)
-        {
-            lock (_clientsLock)
-            {
-                if (client.Connected)
-                {
-                    Console.WriteLine("Client:");
-                    Console.WriteLine("  Local Endpoint: " + client.Client.LocalEndPoint);
-                    Console.WriteLine("  Remote Endpoint: " + client.Client.RemoteEndPoint);
-                }
-                else
-                {
-                    Console.WriteLine("Client not connected.");
-                }
             }
         }
     }
