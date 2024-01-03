@@ -1,6 +1,7 @@
 ﻿using AsyncTcpServer.ClientHandlers;
 using AsyncTcpServer.ImageHandlers;
 using AsyncTcpServer.MessageHandlers.MessageReceivers;
+using AsyncTcpServer.Observer;
 using AsyncTcpServer.Utils;
 using Client.MessageHandlers.MessageSenders;
 using System.Net;
@@ -9,20 +10,22 @@ using System.Net.Sockets;
 
 namespace CustomServer
 {
-    public class AsyncTCPServer
+    public class AsyncTCPServer : ISubscriber
     {
+        // 
         private TcpListener Listener;
         private bool IsRunning = false;
-        private string ImgDirPath = "";
+        private string ImgDirPath = string.Empty;
         private CancellationTokenSource Cts = new CancellationTokenSource();
-        private readonly IMessageHandler MessageHandler;
+        private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private readonly IMessageSender MessageSender;
+        private List<TcpClient> ClientList = new List<TcpClient>();
 
         public AsyncTCPServer(
             string ipAddress, 
             int port, 
-            IMessageHandler messageHandler, 
+            IMessageReceiver messageHandler, 
             IImageHandler imageHandler, 
             IMessageSender messageSender
             )
@@ -32,6 +35,15 @@ namespace CustomServer
             ImageHandler = imageHandler;
             MessageSender = messageSender;
             ImgDirPath = ImageSavePathManager.GetImageSavePath();
+        }
+
+        public void Update(string msg)
+        {
+            foreach (TcpClient client in ClientList)
+            {
+                NetworkStream stream = client.GetStream();
+                MessageSender.SendMsg(msg, stream, Cts.Token);
+            }
         }
 
         public void Start()
@@ -59,6 +71,7 @@ namespace CustomServer
                     if (Listener.Pending())
                     {
                         TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
+                        ClientList.Add(client);
                         ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
                         Console.WriteLine("Client connected.");
                         _ = Task.Run(() => clientHandler.HandleClientAsync(Cts.Token));
@@ -75,10 +88,5 @@ namespace CustomServer
                 Console.WriteLine("Listener has been stopped.");
             }
         }
-
-        //private async Task SendMsgToClient(string msg)
-        //{
-        //    await MessageSender.SendMsg(msg, _stream, );
-        //}
     }
 }
