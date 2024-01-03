@@ -11,11 +11,11 @@ namespace AsyncTcpServer.ClientHandlers
     {
         private readonly TcpClient Client;
         private string Username = string.Empty;
-        private readonly IMessageHandler MessageHandler;
+        private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private string ImgDirPath;
 
-        public ClientHandler(TcpClient client, IMessageHandler messageHandler, IImageHandler imageHandler, string imgDirPath)
+        public ClientHandler(TcpClient client, IMessageReceiver messageHandler, IImageHandler imageHandler, string imgDirPath)
         {
             Client = client;
             MessageHandler = messageHandler;
