@@ -95,6 +95,7 @@ namespace AsyncTcpServer.ClientHandlers
         {
             Client.Close();
             Console.WriteLine($"{Username} has disconnected...");
+            // Add observer to notify server of when to remove client form a list
         }
 
         private void CloseClientIfDisconnected(ClientStatus status)
@@ -120,5 +121,4 @@ namespace AsyncTcpServer.ClientHandlers
             }
         }
     }
-
 }
