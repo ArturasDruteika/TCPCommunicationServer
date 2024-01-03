@@ -1,6 +1,6 @@
 ﻿using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
-using AsyncTcpServer.MessageHandlers;
+using AsyncTcpServer.MessageHandlers.MessageReceivers;
 using System.Net.Sockets;
 using System.Text;
 
@@ -9,28 +9,28 @@ namespace AsyncTcpServer.ClientHandlers
 {
     public class ClientHandler
     {
-        private readonly TcpClient _client;
-        private string _username = string.Empty;
-        private readonly IMessageHandler _messageHandler;
-        private readonly IImageHandler _imageHandler;
-        private string _imgDirPath;
+        private readonly TcpClient Client;
+        private string Username = string.Empty;
+        private readonly IMessageHandler MessageHandler;
+        private readonly IImageHandler ImageHandler;
+        private string ImgDirPath;
 
         public ClientHandler(TcpClient client, IMessageHandler messageHandler, IImageHandler imageHandler, string imgDirPath)
         {
-            _client = client;
-            _messageHandler = messageHandler;
-            _imageHandler = imageHandler;
-            _imgDirPath = imgDirPath;
+            Client = client;
+            MessageHandler = messageHandler;
+            ImageHandler = imageHandler;
+            ImgDirPath = imgDirPath;
         }
 
         public async Task HandleClientAsync(CancellationToken ctsToken)
         {
             LogClientConnectionTime();
-            NetworkStream stream = _client.GetStream();
+            NetworkStream stream = Client.GetStream();
 
             // Assuming you have a method to read the first message
-            string initialMessage = await ReadInitialMessage(_client);
-            _username = ParseUsername(initialMessage);
+            string initialMessage = await ReadInitialMessage(Client);
+            Username = ParseUsername(initialMessage);
             PrintClientInfo();
 
             byte[] buffer = new byte[3]; // Adjusted to 3 bytes for the "IMG" header
@@ -43,11 +43,11 @@ namespace AsyncTcpServer.ClientHandlers
 
             if (header == CommandTypes.MSG)
             {
-                res = await _messageHandler.HandleMessageAsync(stream, ctsToken, _username);
+                res = await MessageHandler.HandleMessageAsync(stream, ctsToken, Username);
             }
             else if (header == CommandTypes.IMG)
             {
-                await _imageHandler.HandleImageAsync(stream, _imgDirPath, ctsToken);
+                await ImageHandler.HandleImageAsync(stream, ImgDirPath, ctsToken);
             }
             else
             {
@@ -93,8 +93,8 @@ namespace AsyncTcpServer.ClientHandlers
 
         private void CloseClient()
         {
-            _client.Close();
-            Console.WriteLine($"{_username} has disconnected...");
+            Client.Close();
+            Console.WriteLine($"{Username} has disconnected...");
         }
 
         private void CloseClientIfDisconnected(ClientStatus status)
@@ -107,12 +107,12 @@ namespace AsyncTcpServer.ClientHandlers
 
         private void PrintClientInfo()
         {
-            if (_client.Connected)
+            if (Client.Connected)
             {
                 Console.WriteLine("Client:");
-                Console.WriteLine("  Local Endpoint: " + _client.Client.LocalEndPoint);
-                Console.WriteLine("  Remote Endpoint: " + _client.Client.RemoteEndPoint);
-                Console.WriteLine("  Username: " + _username);
+                Console.WriteLine("  Local Endpoint: " + Client.Client.LocalEndPoint);
+                Console.WriteLine("  Remote Endpoint: " + Client.Client.RemoteEndPoint);
+                Console.WriteLine("  Username: " + Username);
             }
             else
             {
