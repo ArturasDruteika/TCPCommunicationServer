@@ -1,19 +1,21 @@
 ﻿using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
 using AsyncTcpServer.MessageHandlers.MessageReceivers;
+using AsyncTcpServer.Observer;
 using System.Net.Sockets;
 using System.Text;
 
 
 namespace AsyncTcpServer.ClientHandlers
 {
-    public class ClientHandler
+    public class ClientHandler : ClientRemoverPublisher
     {
         private readonly TcpClient Client;
         private string Username = string.Empty;
         private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private string ImgDirPath;
+        private List<ISubscriber> Subscribers = new List<ISubscriber>();
 
         public ClientHandler(TcpClient client, IMessageReceiver messageHandler, IImageHandler imageHandler, string imgDirPath)
         {
@@ -57,6 +59,25 @@ namespace AsyncTcpServer.ClientHandlers
             CloseClientIfDisconnected(res);
         }
 
+
+        public void Attach(ISubscriber subscriber)
+        {
+            Subscribers.Add(subscriber);
+        }
+
+        public void Detach(ISubscriber subscriber)
+        {
+            Subscribers.Remove(subscriber);
+        }
+
+        public void OnRemoveClient(TcpClient client)
+        {
+            foreach (ISubscriber subscriber in Subscribers)
+            {
+                subscriber.RemoveClient(client);
+            }
+        }
+
         private string ParseUsername(string initialMessage)
         {
             if (string.IsNullOrEmpty(initialMessage))
@@ -93,9 +114,9 @@ namespace AsyncTcpServer.ClientHandlers
 
         private void CloseClient()
         {
+            OnRemoveClient(Client);
             Client.Close();
             Console.WriteLine($"{Username} has disconnected...");
-            // Add observer to notify server of when to remove client form a list
         }
 
         private void CloseClientIfDisconnected(ClientStatus status)
