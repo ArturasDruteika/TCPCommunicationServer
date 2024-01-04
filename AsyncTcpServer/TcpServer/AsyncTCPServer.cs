@@ -46,6 +46,11 @@ namespace CustomServer
             }
         }
 
+        public void RemoveClient(TcpClient client) 
+        {
+            ClientList.Remove(client);
+        }
+
         public void Start()
         {
             Listener.Start();
@@ -73,6 +78,7 @@ namespace CustomServer
                         TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
                         ClientList.Add(client);
                         ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
+                        clientHandler.Attach(this);
                         Console.WriteLine("Client connected.");
                         _ = Task.Run(() => clientHandler.HandleClientAsync(Cts.Token));
                     }
