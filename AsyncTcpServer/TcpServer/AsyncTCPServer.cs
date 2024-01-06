@@ -20,13 +20,13 @@ namespace CustomServer
         private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private readonly IMessageSender MessageSender;
-        private List<TcpClient> ClientList = new List<TcpClient>();
+        private Dictionary<string, TcpClient> ClientDict = new Dictionary<string, TcpClient>();
 
         public AsyncTCPServer(
-            string ipAddress, 
-            int port, 
-            IMessageReceiver messageHandler, 
-            IImageHandler imageHandler, 
+            string ipAddress,
+            int port,
+            IMessageReceiver messageHandler,
+            IImageHandler imageHandler,
             IMessageSender messageSender
             )
         {
@@ -37,18 +37,26 @@ namespace CustomServer
             ImgDirPath = ImageSavePathManager.GetImageSavePath();
         }
 
-        public void Update(string msg)
+        public void AddClient(string username, TcpClient client)
         {
-            foreach (TcpClient client in ClientList)
-            {
-                NetworkStream stream = client.GetStream();
-                MessageSender.SendMsg(msg, stream, Cts.Token);
-            }
+            ClientDict.Add(username, client);
         }
 
-        public void RemoveClient(TcpClient client) 
+        public void RemoveClient(string username) 
         {
-            ClientList.Remove(client);
+            ClientDict.Remove(username);
+        }
+
+        public void BroadcastToOthers(string msg, string username)
+        {
+            foreach (KeyValuePair<string, TcpClient> client in ClientDict)
+            {
+                if (client.Key != username)
+                {
+                    NetworkStream stream = client.Value.GetStream();
+                    MessageSender.SendMsg(msg, stream, Cts.Token);
+                }
+            }
         }
 
         public void Start()
@@ -76,7 +84,6 @@ namespace CustomServer
                     if (Listener.Pending())
                     {
                         TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
-                        ClientList.Add(client);
                         ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
                         clientHandler.Attach(this);
                         Console.WriteLine("Client connected.");
