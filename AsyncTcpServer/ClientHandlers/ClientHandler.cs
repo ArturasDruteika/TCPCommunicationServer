@@ -25,6 +25,32 @@ namespace AsyncTcpServer.ClientHandlers
             ImgDirPath = imgDirPath;
         }
 
+        public void Attach(ISubscriber subscriber)
+        {
+            Subscribers.Add(subscriber);
+        }
+
+        public void Detach(ISubscriber subscriber)
+        {
+            Subscribers.Remove(subscriber);
+        }
+
+        public void OnAddClient(string username, TcpClient client)
+        {
+            foreach (ISubscriber subscriber in Subscribers)
+            {
+                subscriber.AddClient(username, client);
+            }
+        }
+
+        public void OnRemoveClient(string username)
+        {
+            foreach (ISubscriber subscriber in Subscribers)
+            {
+                subscriber.RemoveClient(username);
+            }
+        }
+
         public async Task HandleClientAsync(CancellationToken ctsToken)
         {
             LogClientConnectionTime();
@@ -33,6 +59,7 @@ namespace AsyncTcpServer.ClientHandlers
             // Assuming you have a method to read the first message
             string initialMessage = await ReadInitialMessage(Client);
             Username = ParseUsername(initialMessage);
+            OnAddClient(Username, Client);
             PrintClientInfo();
 
             byte[] buffer = new byte[3]; // Adjusted to 3 bytes for the "IMG" header
@@ -57,25 +84,6 @@ namespace AsyncTcpServer.ClientHandlers
             }
 
             CloseClientIfDisconnected(res);
-        }
-
-
-        public void Attach(ISubscriber subscriber)
-        {
-            Subscribers.Add(subscriber);
-        }
-
-        public void Detach(ISubscriber subscriber)
-        {
-            Subscribers.Remove(subscriber);
-        }
-
-        public void OnRemoveClient(TcpClient client)
-        {
-            foreach (ISubscriber subscriber in Subscribers)
-            {
-                subscriber.RemoveClient(client);
-            }
         }
 
         private string ParseUsername(string initialMessage)
@@ -114,7 +122,7 @@ namespace AsyncTcpServer.ClientHandlers
 
         private void CloseClient()
         {
-            OnRemoveClient(Client);
+            OnRemoveClient(Username);
             Client.Close();
             Console.WriteLine($"{Username} has disconnected...");
         }
