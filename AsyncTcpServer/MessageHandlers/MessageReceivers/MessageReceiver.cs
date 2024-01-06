@@ -20,11 +20,11 @@ namespace AsyncTcpServer.MessageHandlers.MessageReceivers
             Subscribers.Remove(subscriber);
         }
 
-        public void BroadcastToOthers(string msg)
+        public void OnBroadcastToOthers(string msg, string username)
         {
             foreach (var subscriber in Subscribers)
             {
-                subscriber.Update(msg);
+                subscriber.BroadcastToOthers(msg, username);
             }
         }
 
@@ -39,7 +39,7 @@ namespace AsyncTcpServer.MessageHandlers.MessageReceivers
                 {
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
                     Console.WriteLine($"{username}: " + receivedData);
-                    BroadcastToOthers(receivedData);
+                    OnBroadcastToOthers(receivedData, username);
                 }
 
                 if (bytesRead == 0)
