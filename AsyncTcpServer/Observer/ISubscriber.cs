@@ -9,7 +9,8 @@ namespace AsyncTcpServer.Observer
 {
     public interface ISubscriber
     {
-        void Update(string msg);
-        void RemoveClient(TcpClient client);
+        void AddClient(string username, TcpClient client);
+        void RemoveClient(string username);
+        void BroadcastToOthers(string msg, string username);
     }
 }

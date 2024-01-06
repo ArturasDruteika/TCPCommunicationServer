@@ -10,6 +10,6 @@ namespace AsyncTcpServer.Observer
     {
         void Attach(ISubscriber subscriber);
         void Detach(ISubscriber subscriber);
-        void BroadcastToOthers(string msg);
+        void OnBroadcastToOthers(string msg, string username);
     }
 }

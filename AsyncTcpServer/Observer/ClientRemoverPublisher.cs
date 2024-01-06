@@ -11,6 +11,7 @@ namespace AsyncTcpServer.Observer
     {
         void Attach(ISubscriber subscriber);
         void Detach(ISubscriber subscriber);
-        void OnRemoveClient(TcpClient client);
+        void OnAddClient(string username, TcpClient client);
+        void OnRemoveClient(string username);
     }
 }
