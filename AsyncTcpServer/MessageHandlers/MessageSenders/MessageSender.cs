@@ -7,20 +7,36 @@ namespace Client.MessageHandlers.MessageSenders
 {
     public class MessageSender : IMessageSender
     {
-        public async Task SendMsg(string msg, NetworkStream stream, CancellationToken cancellationToken)
+        public async Task SendMsg(string msg, string username, NetworkStream stream, CancellationToken cancellationToken)
         {
-            byte[] header = Encoding.ASCII.GetBytes(CommandTypes.MSG);
-            byte[] data = Encoding.ASCII.GetBytes(msg);
+            byte[] dataToSend = CreateSendingData(msg, username);
+            await stream.WriteAsync(dataToSend, 0, dataToSend.Length);
+        }
 
-            // Create a new array that can hold both header and data
-            byte[] combined = new byte[header.Length + data.Length];
+        private static byte[] CreateSendingData(string msg, string username)
+        {
+            byte[] headerBytes = Encoding.ASCII.GetBytes(CommandTypes.MSG);
+            byte[] usernameBytes = new byte[16];
+            Encoding.ASCII.GetBytes(username).CopyTo(usernameBytes, 0);
+            byte[] msgBytes = Encoding.ASCII.GetBytes(msg);
+            byte[] combinedMsg = CombineMessage(headerBytes, usernameBytes, msgBytes);
 
-            // Copy the header and data into the combined array
-            Buffer.BlockCopy(header, 0, combined, 0, header.Length);
-            Buffer.BlockCopy(data, 0, combined, header.Length, data.Length);
+            return combinedMsg;
+        }
 
-            // Send the combined message in one go
-            await stream.WriteAsync(combined, 0, combined.Length);
+        private static byte[] CombineMessage(byte[] headerBytes, byte[] usernameBytes, byte[] msgBytes)
+        {
+            byte[] combined = new byte[
+                headerBytes.Length +
+                usernameBytes.Length +
+                msgBytes.Length
+                ];
+
+            Buffer.BlockCopy(headerBytes, 0, combined, 0, headerBytes.Length);
+            Buffer.BlockCopy(usernameBytes, 0, combined, headerBytes.Length, usernameBytes.Length);
+            Buffer.BlockCopy(msgBytes, 0, combined, headerBytes.Length + usernameBytes.Length, msgBytes.Length);
+            
+            return combined;
         }
     }
 }
