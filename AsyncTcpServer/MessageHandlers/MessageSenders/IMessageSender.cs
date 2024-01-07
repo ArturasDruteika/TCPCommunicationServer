@@ -5,6 +5,6 @@ namespace Client.MessageHandlers.MessageSenders
 {
     public interface IMessageSender
     {
-        public Task SendMsg(string msg, NetworkStream stream, CancellationToken cancellationToken);
+        public Task SendMsg(string msg, string username, NetworkStream stream, CancellationToken cancellationToken);
     }
 }
