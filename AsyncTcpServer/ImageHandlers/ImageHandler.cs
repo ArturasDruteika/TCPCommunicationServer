@@ -8,7 +8,7 @@ namespace AsyncTcpServer.ImageHandlers
 {
     public class ImageHandler : IImageHandler
     {
-        public async Task HandleImageAsync(NetworkStream stream, string imgPath)
+        public async Task HandleImageAsync(NetworkStream stream, string imgPath, CancellationToken ctsToken)
         {
             string imgName = "received_img.jpg";
             imgPath = imgPath + "/" + imgName;
@@ -16,7 +16,7 @@ namespace AsyncTcpServer.ImageHandlers
             using var fileStream = new FileStream(imgPath, FileMode.Create);
 
             // Read the image data from the stream and write it to the file
-            await stream.CopyToAsync(fileStream);
+            await stream.CopyToAsync(fileStream, ctsToken);
 
             Console.WriteLine($"Image saved to {imgPath}");
             // Further processing of the image...

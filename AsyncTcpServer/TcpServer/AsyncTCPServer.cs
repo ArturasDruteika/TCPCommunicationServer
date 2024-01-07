@@ -1,44 +1,79 @@
 ﻿using AsyncTcpServer.ClientHandlers;
+using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
-using AsyncTcpServer.MessageHandlers;
+using AsyncTcpServer.MessageHandlers.MessageReceivers;
+using AsyncTcpServer.Observer;
 using AsyncTcpServer.Utils;
+using Client.MessageHandlers.MessageSenders;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
+using System.Text;
+
 
 namespace CustomServer
 {
-    public class AsyncTCPServer
+    public class AsyncTCPServer : ISubscriber
     {
-        private TcpListener _listener;
-        private bool _isRunning = false;
-        private string _imgDirPath = "";
-        private CancellationTokenSource _cts = new CancellationTokenSource();
-        private object _clientsLock = new object();
-        private readonly IMessageHandler _messageHandler;
-        private readonly IImageHandler _imageHandler;
+        // 
+        private TcpListener Listener;
+        private bool IsRunning = false;
+        private string ImgDirPath = string.Empty;
+        private CancellationTokenSource Cts = new CancellationTokenSource();
+        private readonly IMessageReceiver MessageHandler;
+        private readonly IImageHandler ImageHandler;
+        private readonly IMessageSender MessageSender;
+        private Dictionary<string, TcpClient> ClientsDict = new Dictionary<string, TcpClient>();
 
-        public AsyncTCPServer(string ipAddress, int port, IMessageHandler messageHandler, IImageHandler imageHandler)
+        public AsyncTCPServer(
+            string ipAddress,
+            int port,
+            IMessageReceiver messageHandler,
+            IImageHandler imageHandler,
+            IMessageSender messageSender
+            )
         {
-            _listener = new TcpListener(IPAddress.Parse(ipAddress), port);
-            _messageHandler = messageHandler;
-            _imageHandler = imageHandler;
-            _imgDirPath = ImageSavePathManager.GetImageSavePath();
+            Listener = new TcpListener(IPAddress.Parse(ipAddress), port);
+            MessageHandler = messageHandler;
+            ImageHandler = imageHandler;
+            MessageSender = messageSender;
+            ImgDirPath = ImageSavePathManager.GetImageSavePath();
+        }
+
+        public void AddClient(string username, TcpClient client)
+        {
+            ClientsDict.Add(username, client);
+        }
+
+        public void RemoveClient(string username) 
+        {
+            ClientsDict.Remove(username);
+        }
+
+        public void BroadcastToOthers(string msg, string username)
+        {
+            foreach (KeyValuePair<string, TcpClient> client in ClientsDict)
+            {
+                if (client.Key != username)
+                {
+                    NetworkStream stream = client.Value.GetStream();
+                    MessageSender.SendMsg(msg, username, stream, Cts.Token);
+                }
+            }
         }
 
         public void Start()
         {
-            _listener.Start();
-            _isRunning = true;
+            Listener.Start();
+            IsRunning = true;
             Console.WriteLine("Server started. Listening for connections...");
             AcceptClientsAsync();
         }
 
         public void Stop()
         {
-            _isRunning = false;
-            _cts.Cancel();
-            _listener.Stop();
+            IsRunning = false;
+            Cts.Cancel();
+            Listener.Stop();
             Console.WriteLine("Server stopped.");
         }
 
@@ -46,18 +81,15 @@ namespace CustomServer
         {
             try
             {
-                while (!_cts.Token.IsCancellationRequested)
+                while (!Cts.Token.IsCancellationRequested)
                 {
-                    if (_listener.Pending())
+                    if (Listener.Pending())
                     {
-                        TcpClient client = await _listener.AcceptTcpClientAsync();
-                        ClientHandler clientHandler = new ClientHandler(client, _messageHandler, _imageHandler, _imgDirPath);
+                        TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
+                        ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
+                        clientHandler.Attach(this);
                         Console.WriteLine("Client connected.");
-                        lock (_clientsLock)
-                        {
-                            PrintClientInfo(client);
-                        }
-                        _ = Task.Run(() => clientHandler.HandleClientAsync());
+                        _ = Task.Run(() => clientHandler.HandleClientAsync(Cts.Token));
                     }
                     else
                     {
@@ -69,23 +101,6 @@ namespace CustomServer
             {
                 // Listener has been stopped
                 Console.WriteLine("Listener has been stopped.");
-            }
-        }
-
-        private void PrintClientInfo(TcpClient client)
-        {
-            lock (_clientsLock)
-            {
-                if (client.Connected)
-                {
-                    Console.WriteLine("Client:");
-                    Console.WriteLine("  Local Endpoint: " + client.Client.LocalEndPoint);
-                    Console.WriteLine("  Remote Endpoint: " + client.Client.RemoteEndPoint);
-                }
-                else
-                {
-                    Console.WriteLine("Client not connected.");
-                }
             }
         }
     }
