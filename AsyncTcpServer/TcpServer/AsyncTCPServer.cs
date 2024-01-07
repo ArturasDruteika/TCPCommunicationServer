@@ -1,4 +1,5 @@
 ﻿using AsyncTcpServer.ClientHandlers;
+using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
 using AsyncTcpServer.MessageHandlers.MessageReceivers;
 using AsyncTcpServer.Observer;
@@ -6,6 +7,7 @@ using AsyncTcpServer.Utils;
 using Client.MessageHandlers.MessageSenders;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 
 namespace CustomServer
@@ -20,7 +22,7 @@ namespace CustomServer
         private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private readonly IMessageSender MessageSender;
-        private Dictionary<string, TcpClient> ClientDict = new Dictionary<string, TcpClient>();
+        private Dictionary<string, TcpClient> ClientsDict = new Dictionary<string, TcpClient>();
 
         public AsyncTCPServer(
             string ipAddress,
@@ -39,22 +41,22 @@ namespace CustomServer
 
         public void AddClient(string username, TcpClient client)
         {
-            ClientDict.Add(username, client);
+            ClientsDict.Add(username, client);
         }
 
         public void RemoveClient(string username) 
         {
-            ClientDict.Remove(username);
+            ClientsDict.Remove(username);
         }
 
         public void BroadcastToOthers(string msg, string username)
         {
-            foreach (KeyValuePair<string, TcpClient> client in ClientDict)
+            foreach (KeyValuePair<string, TcpClient> client in ClientsDict)
             {
                 if (client.Key != username)
                 {
                     NetworkStream stream = client.Value.GetStream();
-                    MessageSender.SendMsg(msg, stream, Cts.Token);
+                    MessageSender.SendMsg(msg, username, stream, Cts.Token);
                 }
             }
         }
