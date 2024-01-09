@@ -29,7 +29,7 @@ namespace AsyncTcpServer.ServerRunners
                 msgSender
                 );
 
-            msgHandler.Attach(server);
+            server.SubscribeToMessageBroadcaster(msgHandler);
 
             server.Start();
 

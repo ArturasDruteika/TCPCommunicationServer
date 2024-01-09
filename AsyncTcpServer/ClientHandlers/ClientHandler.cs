@@ -8,14 +8,18 @@ using System.Text;
 
 namespace AsyncTcpServer.ClientHandlers
 {
-    public class ClientHandler : ClientRemoverPublisher
+    public class ClientHandler
     {
         private readonly TcpClient Client;
         private string Username = string.Empty;
         private readonly IMessageReceiver MessageHandler;
         private readonly IImageHandler ImageHandler;
         private string ImgDirPath;
-        private List<ISubscriber> Subscribers = new List<ISubscriber>();
+
+        public delegate void NewClientHandler(string username, TcpClient client);
+        public event NewClientHandler NewClient;
+        public delegate void RemoveClientHandler(string username);
+        public event RemoveClientHandler RemoveClient;
 
         public ClientHandler(TcpClient client, IMessageReceiver messageHandler, IImageHandler imageHandler, string imgDirPath)
         {
@@ -25,30 +29,14 @@ namespace AsyncTcpServer.ClientHandlers
             ImgDirPath = imgDirPath;
         }
 
-        public void Attach(ISubscriber subscriber)
-        {
-            Subscribers.Add(subscriber);
-        }
-
-        public void Detach(ISubscriber subscriber)
-        {
-            Subscribers.Remove(subscriber);
-        }
-
         public void OnAddClient(string username, TcpClient client)
         {
-            foreach (ISubscriber subscriber in Subscribers)
-            {
-                subscriber.AddClient(username, client);
-            }
+            NewClient?.Invoke(username, client);
         }
 
         public void OnRemoveClient(string username)
         {
-            foreach (ISubscriber subscriber in Subscribers)
-            {
-                subscriber.RemoveClient(username);
-            }
+            RemoveClient?.Invoke(username);
         }
 
         public async Task HandleClientAsync(CancellationToken ctsToken)

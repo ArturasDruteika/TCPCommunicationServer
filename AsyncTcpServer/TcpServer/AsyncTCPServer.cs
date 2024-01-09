@@ -1,18 +1,16 @@
 ﻿using AsyncTcpServer.ClientHandlers;
-using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
 using AsyncTcpServer.MessageHandlers.MessageReceivers;
-using AsyncTcpServer.Observer;
 using AsyncTcpServer.Utils;
 using Client.MessageHandlers.MessageSenders;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using static AsyncTcpServer.MessageHandlers.MessageReceivers.MessageReceiver;
 
 
 namespace CustomServer
 {
-    public class AsyncTCPServer : ISubscriber
+    public class AsyncTCPServer
     {
         // 
         private TcpListener Listener;
@@ -39,12 +37,23 @@ namespace CustomServer
             ImgDirPath = ImageSavePathManager.GetImageSavePath();
         }
 
-        public void AddClient(string username, TcpClient client)
+        public void SubscribeToMessageBroadcaster(MessageReceiver messageReceiver)
+        {
+            messageReceiver.NewMessage += BroadcastToOthers;
+        }
+
+        private void SubscribeToClientHandler(ClientHandler clientHandler)
+        {
+            clientHandler.NewClient += AddClient;
+            clientHandler.RemoveClient += RemoveClient;
+        }
+
+        private void AddClient(string username, TcpClient client)
         {
             ClientsDict.Add(username, client);
         }
 
-        public void RemoveClient(string username) 
+        private void RemoveClient(string username) 
         {
             ClientsDict.Remove(username);
         }
@@ -87,7 +96,7 @@ namespace CustomServer
                     {
                         TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
                         ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
-                        clientHandler.Attach(this);
+                        SubscribeToClientHandler(clientHandler);
                         Console.WriteLine("Client connected.");
                         _ = Task.Run(() => clientHandler.HandleClientAsync(Cts.Token));
                     }
