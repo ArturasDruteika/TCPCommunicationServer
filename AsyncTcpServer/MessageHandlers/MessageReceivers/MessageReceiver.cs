@@ -1,31 +1,23 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using AsyncTcpServer.Containers;
-using AsyncTcpServer.Observer;
 
 
 namespace AsyncTcpServer.MessageHandlers.MessageReceivers
 {
-    public class MessageReceiver : IMessageReceiver, IPublisher
+    public class MessageReceiver : IMessageReceiver
     {
-        private List<ISubscriber> Subscribers = new List<ISubscriber>();
+        public delegate void MessageBroadcaster(string msg, string username);
+        public event MessageBroadcaster NewMessage;
 
-        public void Attach(ISubscriber subscriber)
+        public MessageReceiver()
         {
-            Subscribers.Add(subscriber);
+
         }
 
-        public void Detach(ISubscriber subscriber)
+        public void OnNewMsg(string msg, string username)
         {
-            Subscribers.Remove(subscriber);
-        }
-
-        public void OnBroadcastToOthers(string msg, string username)
-        {
-            foreach (var subscriber in Subscribers)
-            {
-                subscriber.BroadcastToOthers(msg, username);
-            }
+            NewMessage?.Invoke(msg, username);
         }
 
         public async Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken, string username)
@@ -39,7 +31,7 @@ namespace AsyncTcpServer.MessageHandlers.MessageReceivers
                 {
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
                     Console.WriteLine($"{username}: " + receivedData);
-                    OnBroadcastToOthers(receivedData, username);
+                    OnNewMsg(receivedData, username);
                 }
 
                 if (bytesRead == 0)
