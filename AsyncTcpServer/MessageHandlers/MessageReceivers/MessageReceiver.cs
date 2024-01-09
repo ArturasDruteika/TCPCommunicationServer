@@ -1,7 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using AsyncTcpServer.Containers;
-using AsyncTcpServer.Observer;
 
 
 namespace AsyncTcpServer.MessageHandlers.MessageReceivers
