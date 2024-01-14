@@ -42,6 +42,22 @@ namespace CustomServer
             messageReceiver.NewMessage += BroadcastToOthers;
         }
 
+        public void Start()
+        {
+            Listener.Start();
+            IsRunning = true;
+            Console.WriteLine("Server started. Listening for connections...");
+            AcceptClientsAsync();
+        }
+
+        public void Stop()
+        {
+            IsRunning = false;
+            Cts.Cancel();
+            Listener.Stop();
+            Console.WriteLine("Server stopped.");
+        }
+
         private void SubscribeToClientHandler(ClientHandler clientHandler)
         {
             clientHandler.NewClient += AddClient;
@@ -58,7 +74,7 @@ namespace CustomServer
             ClientsDict.Remove(username);
         }
 
-        public void BroadcastToOthers(string msg, string username)
+        private void BroadcastToOthers(string msg, string username)
         {
             foreach (KeyValuePair<string, TcpClient> client in ClientsDict)
             {
@@ -68,22 +84,6 @@ namespace CustomServer
                     MessageSender.SendMsg(msg, username, stream, Cts.Token);
                 }
             }
-        }
-
-        public void Start()
-        {
-            Listener.Start();
-            IsRunning = true;
-            Console.WriteLine("Server started. Listening for connections...");
-            AcceptClientsAsync();
-        }
-
-        public void Stop()
-        {
-            IsRunning = false;
-            Cts.Cancel();
-            Listener.Stop();
-            Console.WriteLine("Server stopped.");
         }
 
         private async void AcceptClientsAsync()
