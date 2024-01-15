@@ -1,6 +1,7 @@
 ﻿using AsyncTcpServer.Containers;
 using AsyncTcpServer.ImageHandlers;
 using AsyncTcpServer.MessageHandlers.MessageReceivers;
+using AsyncTcpServer.MessageReceivers.MessageListeners;
 using System.Net.Sockets;
 using System.Text;
 
@@ -11,19 +12,21 @@ namespace AsyncTcpServer.ClientHandlers
     {
         private readonly TcpClient Client;
         private string Username = string.Empty;
-        private readonly IMessageReceiver MessageHandler;
+        private readonly IMessageReceiver MessageReceiver;
         private readonly IImageHandler ImageHandler;
         private string ImgDirPath;
+
+        MessageListener MessageListenerObj;
 
         public delegate void NewClientHandler(string username, TcpClient client);
         public event NewClientHandler NewClient;
         public delegate void RemoveClientHandler(string username);
         public event RemoveClientHandler RemoveClient;
 
-        public ClientHandler(TcpClient client, IMessageReceiver messageHandler, IImageHandler imageHandler, string imgDirPath)
+        public ClientHandler(TcpClient client, IMessageReceiver MessageReceiver, IImageHandler imageHandler, string imgDirPath)
         {
             Client = client;
-            MessageHandler = messageHandler;
+            MessageReceiver = MessageReceiver;
             ImageHandler = imageHandler;
             ImgDirPath = imgDirPath;
         }
@@ -47,30 +50,12 @@ namespace AsyncTcpServer.ClientHandlers
             string initialMessage = await ReadInitialMessage(Client);
             Username = ParseUsername(initialMessage);
             OnAddClient(Username, Client);
+            MessageListenerObj = new MessageListener(stream, Username, MessageReceiver, ImageHandler, ImgDirPath);
             PrintClientInfo();
 
-            byte[] buffer = new byte[3]; // Adjusted to 3 bytes for the "IMG" header
+            MessageListenerObj.StartListening();
 
-            // Read the header
-            await stream.ReadAsync(buffer, 0, buffer.Length);
-            string header = Encoding.ASCII.GetString(buffer);
-
-            ClientStatus res = 0;
-
-            if (header == CommandTypes.MSG)
-            {
-                res = await MessageHandler.HandleMessageAsync(stream, ctsToken, Username);
-            }
-            else if (header == CommandTypes.IMG)
-            {
-                await ImageHandler.HandleImageAsync(stream, ImgDirPath, ctsToken);
-            }
-            else
-            {
-                Console.WriteLine("Client didn't use the protocol...");
-            }
-
-            CloseClientIfDisconnected(res);
+            //CloseClientIfDisconnected(res);
         }
 
         private string ParseUsername(string initialMessage)
