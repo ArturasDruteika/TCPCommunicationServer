@@ -5,6 +5,6 @@ namespace AsyncTcpServer.MessageHandlers.MessageReceivers
 {
     public interface IMessageReceiver
     {
-        Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken, string username);
+        ClientStatus ReceiveMsg(NetworkStream stream, string username);
     }
 }

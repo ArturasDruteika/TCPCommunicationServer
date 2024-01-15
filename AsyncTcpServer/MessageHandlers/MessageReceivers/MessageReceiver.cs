@@ -1,4 +1,4 @@
-﻿using System.Net.Sockets;
+﻿ using System.Net.Sockets;
 using System.Text;
 using AsyncTcpServer.Containers;
 
@@ -20,14 +20,14 @@ namespace AsyncTcpServer.MessageHandlers.MessageReceivers
             NewMessage?.Invoke(msg, username);
         }
 
-        public async Task<ClientStatus> HandleMessageAsync(NetworkStream stream, CancellationToken ctsToken, string username)
+        public ClientStatus ReceiveMsg(NetworkStream stream, string username)
         {
             try
             {
                 byte[] buffer = new byte[1024];
                 int bytesRead;
 
-                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, ctsToken)) != 0)
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
                     Console.WriteLine($"{username}: " + receivedData);
