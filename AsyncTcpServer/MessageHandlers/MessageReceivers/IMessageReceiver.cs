@@ -1,7 +1,7 @@
-﻿using AsyncTcpServer.Containers;
+﻿using MultipleClientServer.Containers;
 using System.Net.Sockets;
 
-namespace AsyncTcpServer.MessageHandlers.MessageReceivers
+namespace MultipleClientServer.MessageHandlers.MessageReceivers
 {
     public interface IMessageReceiver
     {

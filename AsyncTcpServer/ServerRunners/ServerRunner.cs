@@ -1,9 +1,9 @@
-﻿using AsyncTcpServer.ImageHandlers;
-using AsyncTcpServer.MessageHandlers.MessageReceivers;
-using Client.MessageHandlers.MessageSenders;
+﻿using MultipleClientServer.ImageHandlers;
+using MultipleClientServer.MessageHandlers.MessageReceivers;
+using MultipleClientServer.MessageHandlers.MessageSenders;
 using CustomServer;
 
-namespace AsyncTcpServer.ServerRunners
+namespace MultipleClientServer.ServerRunners
 {
     public class ServerRunner
     {
@@ -21,7 +21,7 @@ namespace AsyncTcpServer.ServerRunners
             ImageHandler imgHandler = new ImageHandler();
             MessageSender msgSender = new MessageSender();
 
-            AsyncTCPServer server = new AsyncTCPServer(
+            Server server = new Server(
                 IP,
                 PORT,
                 msgHandler,

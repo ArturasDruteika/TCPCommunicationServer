@@ -1,16 +1,15 @@
-﻿using AsyncTcpServer.ClientHandlers;
-using AsyncTcpServer.ImageHandlers;
-using AsyncTcpServer.MessageHandlers.MessageReceivers;
-using AsyncTcpServer.Utils;
-using Client.MessageHandlers.MessageSenders;
+﻿using MultipleClientServer.ClientHandlers;
+using MultipleClientServer.ImageHandlers;
+using MultipleClientServer.MessageHandlers.MessageReceivers;
+using MultipleClientServer.Utils;
+using MultipleClientServer.MessageHandlers.MessageSenders;
 using System.Net;
 using System.Net.Sockets;
-using static AsyncTcpServer.MessageHandlers.MessageReceivers.MessageReceiver;
 
 
 namespace CustomServer
 {
-    public class AsyncTCPServer
+    public class Server
     {
         // 
         private TcpListener Listener;
@@ -22,7 +21,7 @@ namespace CustomServer
         private readonly IMessageSender MessageSender;
         private Dictionary<string, TcpClient> ClientsDict = new Dictionary<string, TcpClient>();
 
-        public AsyncTCPServer(
+        public Server(
             string ipAddress,
             int port,
             IMessageReceiver messageHandler,
@@ -86,6 +85,7 @@ namespace CustomServer
             }
         }
 
+        // Move this functionality to a separate class
         private async void AcceptClientsAsync()
         {
             try

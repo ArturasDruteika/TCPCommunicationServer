@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace AsyncTcpServer.ImageHandlers
+namespace MultipleClientServer.ImageHandlers
 {
     public interface IImageHandler
     {

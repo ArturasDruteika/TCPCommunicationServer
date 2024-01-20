@@ -1,9 +1,9 @@
-﻿using AsyncTcpServer.Containers;
+﻿using MultipleClientServer.Containers;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Client.MessageHandlers.MessageSenders
+namespace MultipleClientServer.MessageHandlers.MessageSenders
 {
     public class MessageSender : IMessageSender
     {

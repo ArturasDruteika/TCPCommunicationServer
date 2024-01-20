@@ -1,9 +1,9 @@
 ﻿ using System.Net.Sockets;
 using System.Text;
-using AsyncTcpServer.Containers;
+using MultipleClientServer.Containers;
 
 
-namespace AsyncTcpServer.MessageHandlers.MessageReceivers
+namespace MultipleClientServer.MessageHandlers.MessageReceivers
 {
     public class MessageReceiver : IMessageReceiver
     {

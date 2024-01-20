@@ -1,12 +1,12 @@
-﻿using AsyncTcpServer.Containers;
-using AsyncTcpServer.ImageHandlers;
-using AsyncTcpServer.MessageHandlers.MessageReceivers;
+﻿using MultipleClientServer.Containers;
+using MultipleClientServer.ImageHandlers;
+using MultipleClientServer.MessageHandlers.MessageReceivers;
 using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
-namespace AsyncTcpServer.MessageReceivers.MessageListeners
+namespace MultipleClientServer.MessageReceivers.MessageListeners
 {
     public class MessageListener
     {

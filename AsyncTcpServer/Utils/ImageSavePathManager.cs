@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace AsyncTcpServer.Utils
+namespace MultipleClientServer.Utils
 {
     internal class ImageSavePathManager
     {

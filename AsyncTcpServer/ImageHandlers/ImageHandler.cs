@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 
 
-namespace AsyncTcpServer.ImageHandlers
+namespace MultipleClientServer.ImageHandlers
 {
     public class ImageHandler : IImageHandler
     {
