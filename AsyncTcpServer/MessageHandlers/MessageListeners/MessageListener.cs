@@ -34,31 +34,47 @@ namespace MultipleClientServer.MessageReceivers.MessageListeners
 
         private void ListenForMessages()
         {
-            ClientStatus res = 0;
-            byte[] headerBfr = new byte[3];
-
-            while (true)
+            try
             {
-                Stream.Read(headerBfr, 0, headerBfr.Length);
-                string header = Encoding.ASCII.GetString(headerBfr);
+                byte[] buffer = new byte[1024];
+                int bytesRead;
 
-                if (header == CommandTypes.MSG)
+                while ((bytesRead = Stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    res = MessageReceiver.ReceiveMsg(Stream, Username);
+                    string receivedData = ProcessReceivedData(buffer, bytesRead);
+                    Console.WriteLine($"{Username}: " + receivedData);
+                    OnNewMsg(receivedData, username);
                 }
-                else if (header == CommandTypes.IMG)
+
+                if (bytesRead == 0)
                 {
-                    //await ImageHandler.HandleImageAsync(stream, ImgDirPath, ctsToken);
-                    int a = 0;
+                    return ClientStatus.DISCONNECTED;
+                }
+
+                return ClientStatus.CONNECTED;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+                return ClientStatus.DISCONNECTED;
+            }
+
+            private static KeyValuePair<string, string> ProcessReceivedData(byte[] buffer, int bytesRead)
+            {
+                string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                if (receivedData.Length >= 3 && receivedData.Substring(0, 3) == CommandTypes.MSG)
+                {
+                    receivedData = RemoveHeaderSubstr(receivedData);
+                    string sender = GetSenderName(receivedData);
+                    string message = RemoveSenderName(receivedData);
+                    KeyValuePair<string, string> processedData = new KeyValuePair<string, string>(sender, message);
+                    return processedData;
                 }
                 else
                 {
-                    Console.WriteLine("Client didn't use the protocol...");
+                    return new KeyValuePair<string, string>();
                 }
 
-                // To drop a load from the while loop
-                Thread.Sleep(200);
             }
         }
-    }
 }
