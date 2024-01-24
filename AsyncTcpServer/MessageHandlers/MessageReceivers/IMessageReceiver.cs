@@ -5,6 +5,6 @@ namespace MultipleClientServer.MessageHandlers.MessageReceivers
 {
     public interface IMessageReceiver
     {
-        ClientStatus ReceiveMsg(NetworkStream stream, string username);
+        ClientStatus ReceiveMsg(NetworkStream stream);
     }
 }

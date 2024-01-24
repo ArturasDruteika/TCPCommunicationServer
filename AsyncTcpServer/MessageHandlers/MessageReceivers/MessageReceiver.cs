@@ -7,6 +7,8 @@ namespace MultipleClientServer.MessageHandlers.MessageReceivers
 {
     public class MessageReceiver : IMessageReceiver
     {
+        private int BytesForMsgLen = 16;
+
         public delegate void MessageBroadcaster(string msg, string username);
         public event MessageBroadcaster NewMessage;
 
@@ -20,18 +22,18 @@ namespace MultipleClientServer.MessageHandlers.MessageReceivers
             NewMessage?.Invoke(msg, username);
         }
 
-        public ClientStatus ReceiveMsg(NetworkStream stream, string username)
+        public ClientStatus ReceiveMsg(NetworkStream stream)
         {
             try
             {
+                int msgLen = GetMsgLen(stream);
                 byte[] buffer = new byte[1024];
                 int bytesRead;
 
                 while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
                     string receivedData = ProcessReceivedData(buffer, bytesRead);
-                    Console.WriteLine($"{username}: " + receivedData);
-                    OnNewMsg(receivedData, username);
+                    //break;
                 }
 
                 if (bytesRead == 0)
@@ -46,6 +48,19 @@ namespace MultipleClientServer.MessageHandlers.MessageReceivers
                 Console.WriteLine("Exception: " + ex.Message);
                 return ClientStatus.DISCONNECTED;
             }
+        }
+
+        private int GetMsgLen(NetworkStream stream)
+        {
+            byte[] buffer = new byte[BytesForMsgLen];
+            int bytesRead;
+            string receivedData = "";
+
+            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            }
+            return 0;
         }
 
         private static string ProcessReceivedData(byte[] buffer, int bytesRead)
