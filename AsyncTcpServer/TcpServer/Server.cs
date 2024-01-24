@@ -16,22 +16,22 @@ namespace CustomServer
         private bool IsRunning = false;
         private string ImgDirPath = string.Empty;
         private CancellationTokenSource Cts = new CancellationTokenSource();
-        private readonly IMessageReceiver MessageHandler;
-        private readonly IImageHandler ImageHandler;
+        private readonly IMessageReceiver MessageReceiver;
+        private readonly IImageHandler ImageReceiver;
         private readonly IMessageSender MessageSender;
         private Dictionary<string, TcpClient> ClientsDict = new Dictionary<string, TcpClient>();
 
         public Server(
             string ipAddress,
             int port,
-            IMessageReceiver messageHandler,
-            IImageHandler imageHandler,
+            IMessageReceiver messageReceiver,
+            IImageHandler imageReceiver,
             IMessageSender messageSender
             )
         {
             Listener = new TcpListener(IPAddress.Parse(ipAddress), port);
-            MessageHandler = messageHandler;
-            ImageHandler = imageHandler;
+            MessageReceiver = messageReceiver;
+            ImageReceiver = imageReceiver;
             MessageSender = messageSender;
             ImgDirPath = ImageSavePathManager.GetImageSavePath();
         }
@@ -57,10 +57,10 @@ namespace CustomServer
             Console.WriteLine("Server stopped.");
         }
 
-        private void SubscribeToClientHandler(ClientHandler clientHandler)
+        private void SubscribeToClientReceiver(ClientHandler clientReceiver)
         {
-            clientHandler.NewClient += AddClient;
-            clientHandler.RemoveClient += RemoveClient;
+            clientReceiver.NewClient += AddClient;
+            clientReceiver.RemoveClient += RemoveClient;
         }
 
         private void AddClient(string username, TcpClient client)
@@ -95,10 +95,10 @@ namespace CustomServer
                     if (Listener.Pending())
                     {
                         TcpClient client = await Listener.AcceptTcpClientAsync(Cts.Token);
-                        ClientHandler clientHandler = new ClientHandler(client, MessageHandler, ImageHandler, ImgDirPath);
-                        SubscribeToClientHandler(clientHandler);
+                        ClientHandler clientReceiver = new ClientHandler(client, MessageReceiver, ImageReceiver, ImgDirPath);
+                        SubscribeToClientReceiver(clientReceiver);
                         Console.WriteLine("Client connected.");
-                        _ = Task.Run(() => clientHandler.HandleClientAsync(Cts.Token));
+                        _ = Task.Run(() => clientReceiver.HandleClientAsync(Cts.Token));
                     }
                     else
                     {

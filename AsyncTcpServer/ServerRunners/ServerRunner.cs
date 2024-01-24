@@ -17,19 +17,19 @@ namespace MultipleClientServer.ServerRunners
 
         public void Run() 
         {
-            MessageReceiver msgHandler = new MessageReceiver();
-            ImageHandler imgHandler = new ImageHandler();
+            MessageReceiver msgReceiver = new MessageReceiver();
+            ImageHandler imgReceiver = new ImageHandler();
             MessageSender msgSender = new MessageSender();
 
             Server server = new Server(
                 IP,
                 PORT,
-                msgHandler,
-                imgHandler,
+                msgReceiver,
+                imgReceiver,
                 msgSender
                 );
 
-            server.SubscribeToMessageBroadcaster(msgHandler);
+            server.SubscribeToMessageBroadcaster(msgReceiver);
 
             server.Start();
 
